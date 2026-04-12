@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área Administrativa VIP UTI</title>
+<style>
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f2f2f2;
+  color:#111;
+}
+
+.app-shell{
+  min-height:100vh;
+  padding-bottom:70px;
+}
+
+.page{
+  display:none;
+  min-height:100vh;
+}
+.page.active{
+  display:block;
+}
+
+.bottom-tabs{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  display:flex;
+  z-index:9999;
+  background:#1a202c;
+  box-shadow:0 -2px 12px rgba(0,0,0,0.25);
+}
+
+.tab-btn{
+  flex:1;
+  min-height:58px;
+  border:none;
+  border-right:1px solid rgba(255,255,255,0.07);
+  background:transparent;
+  color:rgba(255,255,255,0.5);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  padding:8px 6px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  letter-spacing:0.3px;
+  transition:color 0.18s, background 0.18s;
+  position:relative;
+}
+.tab-btn:last-child{border-right:none;}
+.tab-btn::before{
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+  background:#4299e1;
+  border-radius:0 0 3px 3px;
+  transform:scaleX(0);
+  transition:transform 0.2s ease;
+}
+.tab-btn:hover{
+  color:rgba(255,255,255,0.85);
+  background:rgba(255,255,255,0.05);
+}
+.tab-btn.active{
+  color:#fff;
+  background:rgba(66,153,225,0.15);
+}
+.tab-btn.active::before{
+  transform:scaleX(1);
+}
+.tab-icon{
+  font-size:18px;
+  line-height:1;
+}
+
+/* =========================
+   PROTOCOLO DE DEVOLUÇÃO
+   ========================= */
+#page-devolucao{ background:#f2f2f2; color:#111; }
+#page-devolucao .container{ max-width:1500px; margin:0 auto; padding:20px; }
+#page-devolucao .card{ background:#fff; border:1px solid #d7d7d7; border-radius:10px; padding:18px; margin-bottom:18px; }
+#page-devolucao .titulo-tela{ text-align:center; margin:0; font-size:28px; }
+#page-devolucao textarea{ width:100%; height:60px; border-radius:8px; border:1px solid #ccc; padding:8px; font-size:14px; font-family:Arial, Helvetica, sans-serif; resize:vertical; }
+#page-devolucao .acoes{ margin-top:10px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+#page-devolucao .acoes-esquerda{ display:flex; gap:8px; flex-wrap:wrap; }
+#page-devolucao .acoes-direita{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-left:auto; }
+#page-devolucao .acoes-arquivo{ margin-top:12px; padding-top:12px; border-top:1px solid #e3e3e3; display:flex; gap:10px; flex-wrap:wrap; }
+#page-devolucao .campo-select{ display:flex; flex-direction:column; gap:4px; min-width:220px; }
+#page-devolucao .campo-select label{ font-size:12px; font-weight:bold; color:#444; }
+#page-devolucao select{ height:34px; border:1px solid #ccc; border-radius:6px; padding:0 8px; font-size:14px; background:#fff; }
+#page-devolucao button.action-btn{ padding:8px 14px; border:none; border-radius:6px; cursor:pointer; font-size:14px; }
+#page-devolucao .btn-enviar{ background:#1f7a1f; color:#fff; }
+#page-devolucao .btn-limpar{ background:#c53030; color:#fff; }
+#page-devolucao .btn-imprimir{ background:#2b6cb0; color:#fff; }
+#page-devolucao .btn-salvar{ background:#6b46c1; color:#fff; }
+#page-devolucao .btn-abrir{ background:#dd6b20; color:#fff; }
+#page-devolucao .area-impressao{ background:#fff; }
+#page-devolucao .titulo-impressao{ text-align:center; font-size:24px; font-weight:bold; margin:0 0 14px 0; color:#111; }
+#page-devolucao table{ width:100%; border-collapse:collapse; table-layout:fixed; }
+#page-devolucao th, #page-devolucao td{ border:1px solid #bfbfbf; padding:4px 5px; font-size:13px; }
+#page-devolucao thead th{ background:#e5e5e5; text-align:center; line-height:1.15; }
+#page-devolucao tbody td{ height:36px; vertical-align:middle; }
+#page-devolucao .col-num{ width:42px; text-align:center; }
+#page-devolucao .col-data{ width:115px; text-align:center; }
+#page-devolucao .col-solic{ width:100px; text-align:center; }
+#page-devolucao .col-paciente{ width:320px; text-align:left; }
+#page-devolucao .col-leito{ width:100px; text-align:center;  }
+#page-devolucao .col-func{ width:170px; text-align:center; }
+#page-devolucao .col-farm{ width:250px; text-align:center; }
+#page-devolucao .col-acoes{ width:80px; text-align:center; }
+#page-devolucao .vazio{ text-align:center; padding:20px; color:#777; }
+#page-devolucao .linha-input{ width:100%; height:28px; border:1px solid #bfbfbf; border-radius:4px; background:#fff; font-size:13px; font-family:Arial, Helvetica, sans-serif; color:#111; outline:none; padding:4px 6px; }
+#page-devolucao .linha-input:focus{ border-color:#2b6cb0; box-shadow:0 0 0 2px rgba(43,108,176,0.12); }
+#page-devolucao .input-centro{ text-align:center; }
+#page-devolucao .input-esquerda{ text-align:left; }
+#page-devolucao .assinatura{ background:#fff; }
+#page-devolucao .btn-remover-linha{ padding:5px 9px; border:none; border-radius:5px; background:#777; color:#fff; cursor:pointer; font-size:12px; }
+
+/* =========================
+   MATERIAL
+   ========================= */
+#page-material{ font-family:Segoe UI, Arial, sans-serif; background:#f5f7fb; padding:20px; }
+#page-material .container{ max-width:1000px; margin:auto; }
+#page-material .linha{ display:flex; gap:15px; margin-bottom:10px; flex-wrap:wrap; }
+#page-material .bloco{ width:500px; flex-direction:column; align-items:center; }
+#page-material .titulo{ font-size:12px; font-weight:600; margin-bottom:3px; }
+#page-material textarea{ width:200px; height:22px; padding:6px; font-size:11px; border-radius:6px; border:1px solid #ccc; resize:none; }
+#page-material button.action-btn{ padding:5px 10px; border:none; background:#2c7be5; color:white; border-radius:4px; cursor:pointer; font-size:11px; margin-top:3px; }
+#page-material button.action-btn:hover{ background:#1d5fd1; }
+#page-material .botoes{ margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; }
+#page-material .resultado{ font-family:Consolas, monospace; white-space:pre; background:white; padding:15px; border-radius:6px; border:1px solid #ddd; margin-top:15px; }
+
+/* =========================
+   FOLHA DE PONTO
+   ========================= */
+#page-ponto{ font-family:Arial, sans-serif; background:#f2f2f2; margin:0; padding:20px; }
+#page-ponto .container{ max-width:1500px; margin:auto; background:#fff; border-radius:12px; box-shadow:0 0 12px rgba(0,0,0,0.08); padding:20px; }
+#page-ponto h1{ text-align:center; margin:0 0 16px; font-size:28px; }
+#page-ponto .top-controls{ display:flex; flex-wrap:wrap; gap:12px; align-items:end; margin-bottom:14px; }
+#page-ponto .campo{ display:flex; flex-direction:column; gap:6px; min-width:220px; }
+#page-ponto .campo label{ font-weight:bold; font-size:14px; }
+#page-ponto .meta-input{ width:100%; height:38px; border:1px solid #bbb; border-radius:8px; padding:0 10px; font-size:15px; }
+#page-ponto .info-topo{ margin-bottom:14px; padding:12px; border-radius:10px; background:#fafafa; border:1px solid #ddd; line-height:1.6; }
+#page-ponto textarea{ width:100%; height:64px; min-height:64px; max-height:120px; resize:vertical; border:1px solid #ccc; border-radius:8px; padding:10px 12px; font-size:14px; margin-bottom:12px; }
+#page-ponto .acoes{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+#page-ponto button.action-btn{ padding:10px 16px; border:none; border-radius:8px; background:#1976d2; color:#fff; font-size:14px; cursor:pointer; }
+#page-ponto button.action-btn:hover{ background:#125ea7; }
+#page-ponto .resumo{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:18px; }
+#page-ponto .card{ border-radius:10px; padding:14px; color:#000; font-weight:bold; text-align:center; border:1px solid #ddd; }
+#page-ponto .amarelo{ background:#fff176; }
+#page-ponto .verde{ background:#00ff00; }
+#page-ponto .laranja{ background:#ffb74d; }
+#page-ponto .cinza{ background:#eeeeee; }
+#page-ponto .small{ font-size:12px; color:#555; margin-top:6px; }
+#page-ponto .table-wrap{ border:1px solid #999; border-radius:10px; overflow:auto; max-height:70vh; background:#fff; }
+#page-ponto table{ border-collapse:separate; border-spacing:0; min-width:1370px; width:max-content; font-size:14px; }
+#page-ponto th, #page-ponto td{ border-right:1px solid #999; border-bottom:1px solid #999; padding:6px; text-align:center; vertical-align:middle; background:#fff; white-space:nowrap; }
+#page-ponto th{ background:#ffeb3b; font-weight:bold; position:sticky; top:0; z-index:20; }
+#page-ponto tr:first-child th{ border-top:0; }
+#page-ponto td:first-child, #page-ponto th:first-child{ border-left:0; }
+#page-ponto .hora-input{ width:92px; height:30px; text-align:center; font-size:14px; border:1px solid #bbb; border-radius:6px; background:#fff; }
+#page-ponto .hora-input:focus, #page-ponto .meta-input:focus{ outline:none; border-color:#1976d2; box-shadow:0 0 0 2px rgba(25,118,210,0.15); }
+#page-ponto .cell-result{ font-weight:bold; min-width:120px; }
+#page-ponto .vazio{ background:#f5f5f5; }
+#page-ponto .ok{ background:#00ff00; }
+#page-ponto .alerta{ background:#f6b44c; }
+#page-ponto .sem-batida{ background:#e0e0e0; }
+#page-ponto .status-ok{ color:#1b7f2a; font-weight:bold; }
+#page-ponto .status-incompleto{ color:#d32f2f; font-weight:bold; }
+#page-ponto .status-sem{ color:#333; }
+#page-ponto .print-text{ display:none; }
+#page-ponto th:nth-child(1),#page-ponto td:nth-child(1){ min-width:110px; position:sticky; left:0; z-index:15; }
+#page-ponto th:nth-child(2),#page-ponto td:nth-child(2){ min-width:120px; position:sticky; left:110px; z-index:15; }
+#page-ponto th:nth-child(3),#page-ponto td:nth-child(3){ min-width:120px; position:sticky; left:230px; z-index:15; }
+#page-ponto th:nth-child(4),#page-ponto td:nth-child(4){ min-width:120px; position:sticky; left:350px; z-index:15; }
+#page-ponto th:nth-child(5),#page-ponto td:nth-child(5){ min-width:120px; position:sticky; left:470px; z-index:15; }
+#page-ponto th:nth-child(6),#page-ponto td:nth-child(6){ min-width:140px; position:sticky; left:590px; z-index:15; }
+#page-ponto th:nth-child(7),#page-ponto td:nth-child(7){ min-width:175px; position:sticky; left:730px; z-index:15; }
+#page-ponto th:nth-child(8),#page-ponto td:nth-child(8){ min-width:120px; position:sticky; left:905px; z-index:15; }
+#page-ponto th:nth-child(9),#page-ponto td:nth-child(9){ min-width:190px; position:sticky; left:1025px; z-index:15; }
+#page-ponto thead th:nth-child(1),#page-ponto thead th:nth-child(2),#page-ponto thead th:nth-child(3),
+#page-ponto thead th:nth-child(4),#page-ponto thead th:nth-child(5),#page-ponto thead th:nth-child(6),
+#page-ponto thead th:nth-child(7),#page-ponto thead th:nth-child(8),#page-ponto thead th:nth-child(9){ z-index:30; }
+#page-ponto tbody td:nth-child(1),#page-ponto tbody td:nth-child(2),#page-ponto tbody td:nth-child(3),
+#page-ponto tbody td:nth-child(4),#page-ponto tbody td:nth-child(5),#page-ponto tbody td:nth-child(6),
+#page-ponto tbody td:nth-child(7),#page-ponto tbody td:nth-child(8),#page-ponto tbody td:nth-child(9){ box-shadow:1px 0 0 #999; }
+@media(max-width:900px){ #page-ponto .top-controls{ flex-direction:column; align-items:stretch; } }
+
+/* =========================
+   LISTA DE PACIENTES
+   ========================= */
+#page-pacientes{ font-family:Arial, sans-serif; background:#f2f2f2; padding:20px; display:flex; flex-direction:column; }
+#page-pacientes .pac-topo{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+#page-pacientes textarea{
+  width:100%;
+  height:60px;
+  min-height:60px;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #bbb;
+  font-size:14px;
+  font-family:Arial, Helvetica, sans-serif;
+  resize:vertical;
+}
+#page-pacientes .pac-linha-btn{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+#page-pacientes button.pac-btn{
+  padding:10px 20px;
+  border:none;
+  border-radius:8px;
+  background:#2d6cdf;
+  color:#fff;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:600;
+}
+#page-pacientes button.pac-btn:hover{ background:#1d5abf; }
+#page-pacientes .pac-resumo{
+  background:#fff;
+  padding:12px 16px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:14px;
+  line-height:1.8;
+  min-width:200px;
+}
+#page-pacientes .bloco-uti{ background:#fff; border-radius:10px; padding:15px; margin-top:16px; }
+#page-pacientes table{ width:100%; border-collapse:collapse; }
+#page-pacientes th, #page-pacientes td{ border:1px solid #e0e0e0; padding:8px; font-size:14px; }
+#page-pacientes th{ background:#eaeaea; }
+#page-pacientes .ocupado{ background:#d4edda; }
+#page-pacientes .vago{ background:#ffe5b4; color:#555; font-style:italic; }
+
+/* =========================
+   PRINT
+   ========================= */
+@media print{
+  .bottom-tabs, #page-devolucao .nao-imprimir, #page-devolucao .col-acoes{ display:none !important; }
+  body{ background:#fff; padding:0; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .app-shell{ padding-bottom:0; }
+  .page{ display:none !important; }
+  #page-devolucao.active{ display:block !important; }
+  @page{ size:A4 landscape; margin:2cm; }
+  #page-devolucao{ background:#fff; padding:0; }
+  #page-devolucao .container{ max-width:none; width:100%; margin:0; padding:0; }
+  #page-devolucao .card{ border:none; border-radius:0; padding:0; margin:0; box-shadow:none; background:#fff; }
+  #page-devolucao .area-impressao{ width:100%; }
+  #page-devolucao .titulo-impressao{ display:block; width:100%; text-align:center; font-size:18px; font-weight:bold; margin:0 0 10px 0; padding:0; color:#111; }
+  #page-devolucao table{ width:100%; table-layout:fixed; }
+  #page-devolucao thead th{ font-size:10px; padding:3px 4px; line-height:1.1; text-align:center; background:#e5e5e5 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  #page-devolucao tbody td{ font-size:10px; padding:2px 4px; height:24px; line-height:1.1; }
+  #page-devolucao .linha-input{ height:22px; font-size:10px; border:1px solid #bfbfbf; border-radius:3px; background:#fff !important; color:#111 !important; padding:2px 4px; box-shadow:none !important; }
+  #page-devolucao tr{ page-break-inside:avoid; }
+}
+@media print{
+  #page-ponto .top-controls, #page-ponto .acoes, #page-ponto textarea{ display:none !important; }
+  #page-ponto{ background:#fff; padding:0; }
+  #page-ponto .container{ box-shadow:none; border:none; padding:0; max-width:none; }
+  #page-ponto h1{ font-size:22px; margin:0 0 10px; }
+  #page-ponto .info-topo{ margin-bottom:10px; padding:10px; border:1px solid #999; border-radius:8px; }
+  #page-ponto .resumo{ grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px; }
+  #page-ponto .card{ border:1px solid #000; padding:8px; border-radius:8px; font-size:11px; }
+  #page-ponto .card div{ font-size:18px !important; margin-top:4px !important; }
+  #page-ponto .table-wrap{ max-height:none; overflow:visible; border:none; border-radius:0; }
+  #page-ponto table{ width:100% !important; min-width:0 !important; table-layout:fixed; border-collapse:collapse; font-size:11px; }
+  #page-ponto th, #page-ponto td{ position:static !important; box-shadow:none !important; white-space:normal !important; word-break:break-word; padding:4px 3px; min-width:auto !important; }
+  #page-ponto th{ background:#ddd !important; color:#000; }
+  #page-ponto .print-text{ display:inline-block !important; font-weight:bold; font-size:11px; }
+  #page-ponto .hora-input{ display:none !important; }
+  #page-ponto .small{ font-size:10px; }
+  #page-ponto .status-ok, #page-ponto .status-incompleto, #page-ponto .status-sem{ font-size:10px; line-height:1.2; }
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- MATERIAL -->
+  <section id="page-material" class="page active">
+    <div class="container">
+      <div class="linha">
+        <div class="bloco">
+          <div class="titulo">UTI E</div>
+          <textarea id="utiE"></textarea>
+          <button class="action-btn" onclick="materialApp.limpar('utiE')">Limpar</button>
+        </div>
+        <div class="bloco">
+          <div class="titulo">UTI B</div>
+          <textarea id="utiB"></textarea>
+          <button class="action-btn" onclick="materialApp.limpar('utiB')">Limpar</button>
+        </div>
+        <div class="bloco">
+          <div class="titulo">UTI C</div>
+          <textarea id="utiC"></textarea>
+          <button class="action-btn" onclick="materialApp.limpar('utiC')">Limpar</button>
+        </div>
+        <div class="bloco">
+          <div class="titulo">UTI D</div>
+          <textarea id="utiD"></textarea>
+          <button class="action-btn" onclick="materialApp.limpar('utiD')">Limpar</button>
+        </div>
+        <div class="bloco">
+          <div class="titulo">UTI SUS</div>
+          <textarea id="utiSUS"></textarea>
+          <button class="action-btn" onclick="materialApp.limpar('utiSUS')">Limpar</button>
+        </div>
+      </div>
+      <div class="botoes">
+        <button class="action-btn" onclick="materialApp.somar()">Somar</button>
+        <button class="action-btn" onclick="materialApp.limparTudo()">Limpar Tudo</button>
+      </div>
+      <div id="resultado" class="resultado"></div>
+    </div>
+  </section>
+
+  <!-- PROTOCOLO DE DEVOLUÇÃO -->
+  <section id="page-devolucao" class="page">
+    <div class="container">
+      <div class="card nao-imprimir">
+        <h1 class="titulo-tela">Protocolo de Devolução</h1>
+      </div>
+      <div class="card nao-imprimir">
+        <textarea id="entrada" placeholder="Cole aqui..."></textarea>
+        <div class="acoes">
+          <div class="acoes-esquerda">
+            <button class="action-btn btn-enviar" onclick="devolucaoApp.processar()">Enviar</button>
+            <button class="action-btn btn-limpar" onclick="devolucaoApp.limpar()">Limpar</button>
+            <button class="action-btn btn-imprimir" onclick="window.print()">Imprimir</button>
+          </div>
+          <div class="acoes-direita">
+            <div class="campo-select">
+              <label for="selectFuncionario">Funcionário que devolveu</label>
+              <select id="selectFuncionario" onchange="devolucaoApp.aoMudarFuncionario()">
+                <option value="">Selecione</option>
+                <option value="Emanuel Elias">Emanuel Elias</option>
+                <option value="Rose Costa">Rose Costa</option>
+                <option value="Tatiane Lopes">Tatiane Lopes</option>
+                <option value="Wanderson Ulhoa">Wanderson Ulhoa</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="acoes-arquivo">
+          <button class="action-btn btn-salvar" onclick="devolucaoApp.salvarTXT()">Salvar</button>
+          <button class="action-btn btn-abrir" onclick="document.getElementById('inputAbrirArquivo').click()">Abrir</button>
+          <input type="file" id="inputAbrirArquivo" accept=".txt" style="display:none" onchange="devolucaoApp.abrirTXT(event)">
+        </div>
+      </div>
+      <div class="card area-impressao">
+        <div class="titulo-impressao">Protocolo de Devolução</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="col-num">#</th>
+              <th class="col-data">Data de devolução</th>
+              <th class="col-solic">Solicitação</th>
+              <th class="col-paciente">Paciente</th>
+              <th class="col-leito">Leito</th>
+              <th class="col-func">Nome do Funcionário que Devolveu</th>
+              <th class="col-farm">Profissional da Farmácia que Recebeu</th>
+              <th class="col-acoes">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="8" class="vazio">nenhum protocolo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOLHA DE PONTO -->
+  <section id="page-ponto" class="page">
+    <div class="container">
+      <h1>Conferência de Ponto</h1>
+      <div class="top-controls">
+        <div class="campo">
+          <label for="pontoMetaDia">Horas a trabalhar por dia</label>
+          <input id="pontoMetaDia" class="meta-input" type="text" value="10" placeholder="10 ou 10:00">
+        </div>
+        <div class="campo">
+          <label for="pontoMetaMes">Horas a trabalhar por mês</label>
+          <input id="pontoMetaMes" class="meta-input" type="text" value="220" placeholder="220 ou 220:00">
+        </div>
+      </div>
+      <div class="info-topo" id="pontoInfoTopo">
+        <div><b>Colaborador:</b> —</div>
+        <div><b>Competência:</b> —</div>
+        <div><b>Jornada:</b> —</div>
+        <div><b>Meta diária:</b> 10:00</div>
+        <div><b>Meta mensal:</b> 220:00</div>
+        <div class="small">Com 4 batidas calcula normal. Com 2 ou 3 batidas calcula provisório da 1ª para a 2ª. Com 1 batida não calcula.</div>
+      </div>
+      <textarea id="pontoEntrada" placeholder="Cole aqui o relatório completo de ponto..."></textarea>
+      <div class="acoes">
+        <button class="action-btn" onclick="pontoApp.processarRelatorio()">Processar relatório</button>
+        <button class="action-btn" onclick="pontoApp.recalcularTudo()">Recalcular</button>
+        <button class="action-btn" onclick="pontoApp.limparTudo()">Limpar</button>
+        <button class="action-btn" onclick="pontoApp.imprimir()">Imprimir</button>
+      </div>
+      <div class="resumo">
+        <div class="card amarelo">Total de horas no mês<div id="pontoHorasMes" style="font-size:24px;margin-top:8px;">00:00</div></div>
+        <div class="card" id="pontoCardSaldo">Saldo total<div id="pontoSaldoTotal" style="font-size:24px;margin-top:8px;">00:00</div></div>
+        <div class="card verde">Faltam para meta mensal<div id="pontoFaltamMeta" style="font-size:24px;margin-top:8px;">00:00</div></div>
+        <div class="card cinza">Dias contabilizados<div id="pontoDiasCompletos" style="font-size:24px;margin-top:8px;">0</div></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th><th>Entrada</th><th>Almoço entrada</th><th>Almoço saída</th>
+              <th>Saída</th><th>Horas de almoço</th><th>Horas trabalhadas</th><th>Saldo diário</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="pontoTabelaBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- LISTA DE PACIENTES -->
+  <section id="page-pacientes" class="page">
+    <div class="pac-topo">
+      <textarea id="pacientesTexto" placeholder="Cole os dados..."></textarea>
+      <div class="pac-linha-btn">
+        <button class="pac-btn" onclick="pacientesApp.atualizar()">Atualizar</button>
+      </div>
+      <div class="pac-resumo" id="pacientesResultado"></div>
+    </div>
+    <div id="pacientesTabelasDiv"></div>
+  </section>
+
+</div>
+
+<nav class="bottom-tabs" aria-label="Abas inferiores">
+  <button id="tab-material" class="tab-btn active" onclick="switchTab('material')">
+    <span class="tab-icon">📦</span>Material
+  </button>
+  <button id="tab-devolucao" class="tab-btn" onclick="switchTab('devolucao')">
+    <span class="tab-icon">📋</span>Protocolo de Devolução
+  </button>
+  <button id="tab-ponto" class="tab-btn" onclick="switchTab('ponto')">
+    <span class="tab-icon">🕐</span>Folha de Ponto
+  </button>
+  <button id="tab-pacientes" class="tab-btn" onclick="switchTab('pacientes')">
+    <span class="tab-icon">🏥</span>Lista de Pacientes
+  </button>
+</nav>
+
+<script>
+function switchTab(tab){
+  ['material','devolucao','ponto','pacientes'].forEach(t => {
+    document.getElementById('page-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+  localStorage.setItem('aba_site_unificado', tab);
+}
+
+(function initTabs(){
+  const salva = localStorage.getItem('aba_site_unificado');
+  if(['material','devolucao','ponto','pacientes'].includes(salva)) switchTab(salva);
+  else switchTab('material');
+})();
+
+/* ========================= MATERIAL ========================= */
+const materialApp = {
+  camposIds: ['utiE','utiB','utiC','utiD','utiSUS'],
+
+  init(){
+    this.camposIds.forEach(id => {
+      document.getElementById(id).addEventListener('input', () => this.salvar());
+      const v = localStorage.getItem('mat_'+id);
+      if(v) document.getElementById(id).value = v;
+    });
+    const res = localStorage.getItem('mat_resultado');
+    if(res) document.getElementById('resultado').textContent = res;
+  },
+
+  salvar(){
+    this.camposIds.forEach(id => localStorage.setItem('mat_'+id, document.getElementById(id).value));
+  },
+
+  limpar(id){
+    document.getElementById(id).value = '';
+    this.salvar();
+  },
+
+  limparTudo(){
+    this.camposIds.forEach(id => { document.getElementById(id).value = ''; localStorage.removeItem('mat_'+id); });
+    document.getElementById('resultado').textContent = '';
+    localStorage.removeItem('mat_resultado');
+  },
+
+  formatar(n){ return n.toString().padStart(2,'0'); },
+
+  pegarCodigo(texto, codigo){
+    const regex = new RegExp(codigo+'[\\s\\S]*?(UNIDADE|ROLO|RESMA)\\s+(\\d+),','g');
+    let total = 0, match;
+    while((match = regex.exec(texto)) !== null) total += parseInt(match[2]);
+    return total;
+  },
+
+  somar(){
+    let total = {
+      'BOBINA PLAST. 30x40':0,'BOBINA PLAST. 40x60':0,'BOBINA PLAST. 50x70':0,
+      'COLETOR 13':0,'COLETOR 7':0,'PANO BRANCO':0,'PANO VERDE':0,'RESMA':0
+    };
+    this.camposIds.map(id => document.getElementById(id).value).forEach(txt => {
+      txt = txt.toUpperCase();
+      const b = txt.match(/4497[78][\s\S]*?(30X40|40X60|50X70)[\s\S]*?(UNIDADE|ROLO|RESMA)\s+(\d+)(?:,\d+)?/g);
+      if(b) b.forEach(item => {
+        if(item.includes('30X40')) total['BOBINA PLAST. 30x40'] += parseInt((item.match(/(\d+)(?:,\d+)?\s*$/)||[,'0'])[1]);
+        if(item.includes('40X60')) total['BOBINA PLAST. 40x60'] += parseInt((item.match(/(\d+)(?:,\d+)?\s*$/)||[,'0'])[1]);
+        if(item.includes('50X70')) total['BOBINA PLAST. 50x70'] += parseInt((item.match(/(\d+)(?:,\d+)?\s*$/)||[,'0'])[1]);
+      });
+      total['COLETOR 13'] += this.pegarCodigo(txt,'2130');
+      total['COLETOR 7']  += this.pegarCodigo(txt,'7756');
+      total['PANO BRANCO'] += this.pegarCodigo(txt,'47301');
+      total['PANO VERDE']  += this.pegarCodigo(txt,'12162');
+      total['RESMA']       += this.pegarCodigo(txt,'10070');
+    });
+    let out = '';
+    for(let item in total) out += item.padEnd(28,' ') + ' : ' + this.formatar(total[item]) + '\n';
+    document.getElementById('resultado').textContent = out;
+    localStorage.setItem('mat_resultado', out);
+  }
+};
+
+/* ========================= DEVOLUÇÃO ========================= */
+const devolucaoApp = {
+  STORAGE_KEY: 'protocolo_devolucao_dados_v5',
+  lista: [],
+
+  init(){ this.carregarDoNavegador(); },
+
+  normalizar(t){ return t.replace(/\r/g,'').replace(/\u00A0/g,' ').replace(/[ \t]+/g,' ').trim(); },
+
+  getFuncionarioSelecionado(){ return document.getElementById('selectFuncionario').value||''; },
+
+  aoMudarFuncionario(){ this.aplicarFuncionarioEmTudo(); this.salvarNoNavegador(); },
+
+  aplicarFuncionarioEmTudo(){
+    const f = this.getFuncionarioSelecionado();
+    this.lista.forEach(item => { item.funcionario = f; });
+    this.render();
+  },
+
+  ordenarLista(){
+    this.lista.sort((a,b) => (a.paciente||'').localeCompare((b.paciente||''),'pt-BR',{sensitivity:'base'}));
+  },
+
+  formatarDataHoje(){
+    const h = new Date();
+    return String(h.getDate()).padStart(2,'0')+'/'+String(h.getMonth()+1).padStart(2,'0')+'/'+h.getFullYear();
+  },
+
+  processar(){
+    const txt = document.getElementById('entrada').value.trim();
+    if(!txt){ alert('cole os dados'); return; }
+    const linhas = txt.split('\n').map(l => this.normalizar(l)).filter(l => l);
+    let solicitacao='', paciente='', leito='';
+    for(let i=0;i<linhas.length;i++){
+      const m = linhas[i].match(/^(\d+)\s+(.+)/);
+      if(m && /^\d+$/.test(linhas[i+1]||'')){ paciente=m[2]; solicitacao=linhas[i+1]; break; }
+    }
+    for(const l of linhas){ if(/^UTI\s+SUS/i.test(l)){ leito=l; break; } }
+    if(!solicitacao||!paciente||!leito){ alert('erro ao capturar'); return; }
+    this.lista.push({ dataDevolucao:this.formatarDataHoje(), solicitacao, paciente, leito, funcionario:this.getFuncionarioSelecionado() });
+    this.ordenarLista(); this.render(); this.salvarNoNavegador();
+    document.getElementById('entrada').value = '';
+  },
+
+  atualizarCampo(i, campo, valor){ this.lista[i][campo]=valor; this.salvarNoNavegador(); },
+
+  render(){
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+    if(!this.lista.length){ tbody.innerHTML='<tr><td colspan="8" class="vazio">nenhum protocolo</td></tr>'; return; }
+    this.lista.forEach((p,i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="col-num">${i+1}</td>
+        <td class="col-data"><input type="text" class="linha-input input-centro" value="${this.esc(p.dataDevolucao)}" oninput="devolucaoApp.atualizarCampo(${i},'dataDevolucao',this.value)"></td>
+        <td class="col-solic"><input type="text" class="linha-input input-centro" value="${this.esc(p.solicitacao)}" oninput="devolucaoApp.atualizarCampo(${i},'solicitacao',this.value)"></td>
+        <td class="col-paciente"><input type="text" class="linha-input input-esquerda" value="${this.esc(p.paciente)}" oninput="devolucaoApp.atualizarCampo(${i},'paciente',this.value)"></td>
+        <td class="col-leito"><input type="text" class="linha-input input-centro" value="${this.esc(p.leito)}" oninput="devolucaoApp.atualizarCampo(${i},'leito',this.value)"></td>
+        <td class="col-func"><input type="text" class="linha-input input-centro" value="${this.esc(p.funcionario)}" oninput="devolucaoApp.atualizarCampo(${i},'funcionario',this.value)"></td>
+        <td class="col-farm assinatura"></td>
+        <td class="col-acoes"><button class="btn-remover-linha" onclick="devolucaoApp.remover(${i})">X</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  },
+
+  remover(i){ this.lista.splice(i,1); this.render(); this.salvarNoNavegador(); },
+
+  limpar(){
+    if(!confirm('limpar tudo?')) return;
+    this.lista=[];
+    document.getElementById('entrada').value='';
+    document.getElementById('selectFuncionario').value='';
+    this.render(); this.salvarNoNavegador();
+  },
+
+  esc(t){ return String(t||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); },
+
+  gerarNomeArquivo(){
+    let f = this.getFuncionarioSelecionado().trim();
+    if(!f && this.lista.length) f = (this.lista[0].funcionario||'').trim();
+    return `${this.formatarDataHoje()} - devolução - ${f||'Sem funcionario'}.txt`;
+  },
+
+  salvarTXT(){
+    const blob = new Blob([JSON.stringify({funcionarioSelecionado:this.getFuncionarioSelecionado(),lista:this.lista},null,2)],{type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download=this.gerarNomeArquivo();
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  },
+
+  abrirTXT(event){
+    const arq = event.target.files[0]; if(!arq) return;
+    const lr = new FileReader();
+    lr.onload = e => {
+      try{
+        const d = JSON.parse(e.target.result);
+        this.lista = (Array.isArray(d.lista)?d.lista:[]).map(it=>({dataDevolucao:it.dataDevolucao||'',solicitacao:it.solicitacao||'',paciente:it.paciente||'',leito:it.leito||'',funcionario:it.funcionario||''}));
+        document.getElementById('selectFuncionario').value = d.funcionarioSelecionado||'';
+        this.ordenarLista(); this.render(); this.salvarNoNavegador();
+      }catch(e){ alert('arquivo inválido'); }
+    };
+    lr.readAsText(arq,'UTF-8'); event.target.value='';
+  },
+
+  salvarNoNavegador(){
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify({funcionarioSelecionado:this.getFuncionarioSelecionado(),lista:this.lista}));
+  },
+
+  carregarDoNavegador(){
+    try{
+      const raw = localStorage.getItem(this.STORAGE_KEY); if(!raw) return;
+      const d = JSON.parse(raw);
+      this.lista = (Array.isArray(d.lista)?d.lista:[]).map(it=>({dataDevolucao:it.dataDevolucao||'',solicitacao:it.solicitacao||'',paciente:it.paciente||'',leito:it.leito||'',funcionario:it.funcionario||''}));
+      document.getElementById('selectFuncionario').value = d.funcionarioSelecionado||'';
+      this.ordenarLista(); this.render();
+    }catch(e){ console.error(e); }
+  }
+};
+
+/* ========================= PONTO ========================= */
+const pontoApp = {
+  parseCargaHoraria(v){
+    const t = String(v||'').trim().replace(',','.');
+    if(!t) return null;
+    if(/^\d{1,4}:\d{2}$/.test(t)){ const [h,m]=t.split(':').map(Number); return (m<0||m>59)?null:h*60+m; }
+    if(/^\d+(\.\d+)?$/.test(t)) return Math.round(parseFloat(t)*60);
+    return null;
+  },
+  horaParaMinutos(h){ if(!/^\d{2}:\d{2}$/.test(h)) return null; const [hh,mm]=h.split(':').map(Number); return (hh<0||hh>23||mm<0||mm>59)?null:hh*60+mm; },
+  minutosParaHora(m){ const s=m<0?'-':''; const a=Math.abs(m); return s+String(Math.floor(a/60)).padStart(2,'0')+':'+String(a%60).padStart(2,'0'); },
+  getMetaDiaMin(){ const m=this.parseCargaHoraria(document.getElementById('pontoMetaDia').value); return m===null?600:m; },
+  getMetaMesMin(){ const m=this.parseCargaHoraria(document.getElementById('pontoMetaMes').value); return m===null?13200:m; },
+
+  formatarInputHora(input){ let v=input.value.replace(/\D/g,'').slice(0,4); if(v.length>=3) v=v.slice(0,2)+':'+v.slice(2); input.value=v; },
+
+  atualizarInfoTopo(texto=''){
+    const metaDia=this.getMetaDiaMin(), metaMes=this.getMetaMesMin();
+    let colaborador='—',jornada='—',competencia='—';
+    const el = document.getElementById('pontoInfoTopo');
+    if(texto){
+      colaborador=(texto.match(/COLABORADOR\(A\):\s*(.*?)\s+MATRICULA:/i)||[,'—'])[1].trim();
+      jornada=(texto.match(/JORNADA:\s*(.*?)\s+FUNCAO:/i)||[,'—'])[1].trim();
+      competencia=(texto.match(/COMPETENCIA:\s*(.*?)\s+DATA DE EMISSÃO:/i)||[,'—'])[1].trim();
+    }else{
+      const cur=el.dataset.rawText||'';
+      if(cur){
+        colaborador=(cur.match(/COLABORADOR\(A\):\s*(.*?)\s+MATRICULA:/i)||[,'—'])[1].trim();
+        jornada=(cur.match(/JORNADA:\s*(.*?)\s+FUNCAO:/i)||[,'—'])[1].trim();
+        competencia=(cur.match(/COMPETENCIA:\s*(.*?)\s+DATA DE EMISSÃO:/i)||[,'—'])[1].trim();
+      }
+    }
+    el.dataset.rawText = texto||el.dataset.rawText||'';
+    el.innerHTML = `
+      <div><b>Colaborador:</b> ${colaborador}</div>
+      <div><b>Competência:</b> ${competencia}</div>
+      <div><b>Jornada:</b> ${jornada}</div>
+      <div><b>Meta diária:</b> ${this.minutosParaHora(metaDia)}</div>
+      <div><b>Meta mensal:</b> ${this.minutosParaHora(metaMes)}</div>
+      <div class="small">Com 4 batidas calcula normal. Com 2 ou 3 batidas calcula provisório da 1ª para a 2ª. Com 1 batida não calcula.</div>
+    `;
+  },
+
+  criarInputHora(valor=''){
+    const input=document.createElement('input');
+    input.type='text'; input.className='hora-input'; input.placeholder='--:--'; input.maxLength=5; input.value=valor;
+    input.addEventListener('input',()=>{ this.formatarInputHora(input); this.recalcularTudo(); });
+    input.addEventListener('blur',()=>{ if(input.value&&!/^\d{2}:\d{2}$/.test(input.value)) input.value=''; this.recalcularTudo(); });
+    return input;
+  },
+
+  criarLinhaTabela(data, batidas){
+    const tbody=document.getElementById('pontoTabelaBody');
+    const tr=document.createElement('tr');
+    const tdData=document.createElement('td'); tdData.textContent=data; tr.appendChild(tdData);
+    [batidas[0]||'',batidas[1]||'',batidas[2]||'',batidas[3]||''].forEach(v=>{ const td=document.createElement('td'); td.appendChild(this.criarInputHora(v)); tr.appendChild(td); });
+    ['--:--','--:--','--:--'].forEach(()=>{ const td=document.createElement('td'); td.className='cell-result sem-batida'; td.textContent='--:--'; tr.appendChild(td); });
+    const tdS=document.createElement('td'); tdS.innerHTML='<span class="status-sem">Sem batidas</span>'; tr.appendChild(tdS);
+    tbody.appendChild(tr);
+  },
+
+  processarRelatorio(){
+    const texto=document.getElementById('pontoEntrada').value.trim();
+    document.getElementById('pontoTabelaBody').innerHTML='';
+    if(!texto){ alert('Cole o relatório primeiro.'); return; }
+    this.atualizarInfoTopo(texto);
+    for(const linha of texto.split(/\r?\n/)){
+      const m=linha.match(/^(\d{2}\/\d{2}\/\d{4})\s+\w{3}(.*)$/i);
+      if(m) this.criarLinhaTabela(m[1], m[2].trim().match(/\d{2}:\d{2}/g)||[]);
+    }
+    this.recalcularTudo();
+  },
+
+  recalcularTudo(){
+    const linhas=document.querySelectorAll('#pontoTabelaBody tr');
+    const metaDia=this.getMetaDiaMin(), metaMes=this.getMetaMesMin();
+    this.atualizarInfoTopo();
+    let totalHorasMes=0, diasContabilizados=0;
+    linhas.forEach(tr=>{
+      const tds=tr.querySelectorAll('td');
+      const e=tds[1].querySelector('input').value.trim(), ae=tds[2].querySelector('input').value.trim();
+      const as=tds[3].querySelector('input').value.trim(), s=tds[4].querySelector('input').value.trim();
+      const tdA=tds[5],tdT=tds[6],tdS=tds[7],tdSt=tds[8];
+      tdA.className=tdT.className=tdS.className='cell-result sem-batida';
+      const pre=[e,ae,as,s].filter(v=>v!=='').length;
+      const limpar=txt=>{ tdA.textContent=tdT.textContent=tdS.textContent='--:--'; tdSt.innerHTML=txt; };
+      if(pre===0){ limpar('<span class="status-sem">Sem batidas</span>'); return; }
+      if(pre===1){ limpar('<span class="status-incompleto">Incompleto (1 batida)</span>'); return; }
+      if(pre===4){
+        const mE=this.horaParaMinutos(e),mAE=this.horaParaMinutos(ae),mAS=this.horaParaMinutos(as),mS=this.horaParaMinutos(s);
+        if(mE===null||mAE===null||mAS===null||mS===null){ limpar('<span class="status-incompleto">Horário inválido</span>'); return; }
+        if(!(mE<=mAE&&mAE<=mAS&&mAS<=mS)){ limpar('<span class="status-incompleto">Sequência inválida</span>'); return; }
+        const j=mS-mE, sd=j-metaDia;
+        tdA.textContent=this.minutosParaHora(mAS-mAE);
+        tdT.textContent=this.minutosParaHora((mAE-mE)+(mS-mAS));
+        tdS.textContent=this.minutosParaHora(sd);
+        tdA.className='cell-result vazio';
+        tdT.className='cell-result '+(j>=metaDia?'ok':'alerta');
+        tdS.className='cell-result '+(sd>=0?'ok':'alerta');
+        tdSt.innerHTML='<span class="status-ok">Completo</span>';
+        totalHorasMes+=j; diasContabilizados++; return;
+      }
+      const mE=this.horaParaMinutos(e), mS2=this.horaParaMinutos(ae);
+      if(mE===null||mS2===null){ limpar('<span class="status-incompleto">Horário inválido</span>'); return; }
+      if(mS2<mE){ limpar('<span class="status-incompleto">Sequência inválida</span>'); return; }
+      const j=mS2-mE, sd=j-metaDia;
+      tdA.textContent='00:00'; tdT.textContent=this.minutosParaHora(j); tdS.textContent=this.minutosParaHora(sd);
+      tdA.className='cell-result vazio';
+      tdT.className='cell-result '+(j>=metaDia?'ok':'alerta');
+      tdS.className='cell-result '+(sd>=0?'ok':'alerta');
+      tdSt.innerHTML=`<span class="status-incompleto">Parcial (${pre} batidas)</span>`;
+      totalHorasMes+=j; diasContabilizados++;
+    });
+    const saldoTotal=totalHorasMes-diasContabilizados*metaDia;
+    document.getElementById('pontoHorasMes').textContent=this.minutosParaHora(totalHorasMes);
+    document.getElementById('pontoSaldoTotal').textContent=this.minutosParaHora(saldoTotal);
+    document.getElementById('pontoFaltamMeta').textContent=this.minutosParaHora(Math.max(0,metaMes-totalHorasMes));
+    document.getElementById('pontoDiasCompletos').textContent=diasContabilizados;
+    const c=document.getElementById('pontoCardSaldo');
+    c.classList.remove('verde','laranja','cinza');
+    c.classList.add(saldoTotal>0?'verde':saldoTotal<0?'laranja':'cinza');
+  },
+
+  imprimir(){
+    document.querySelectorAll('#page-ponto .print-text').forEach(s=>s.remove());
+    document.querySelectorAll('#page-ponto .hora-input').forEach(input=>{
+      const span=document.createElement('span'); span.textContent=input.value||'--:--'; span.className='print-text';
+      input.parentNode.appendChild(span);
+    });
+    window.print();
+    document.querySelectorAll('#page-ponto .print-text').forEach(s=>s.remove());
+  },
+
+  limparTudo(){
+    document.getElementById('pontoEntrada').value='';
+    document.getElementById('pontoTabelaBody').innerHTML='';
+    document.getElementById('pontoMetaDia').value='10';
+    document.getElementById('pontoMetaMes').value='220';
+    ['pontoHorasMes','pontoSaldoTotal','pontoFaltamMeta'].forEach(id=>document.getElementById(id).textContent='00:00');
+    document.getElementById('pontoDiasCompletos').textContent='0';
+    document.getElementById('pontoInfoTopo').dataset.rawText='';
+    const c=document.getElementById('pontoCardSaldo'); c.classList.remove('verde','laranja'); c.classList.add('cinza');
+    this.atualizarInfoTopo('');
+  },
+
+  init(){
+    document.getElementById('pontoMetaDia').addEventListener('input',()=>this.recalcularTudo());
+    document.getElementById('pontoMetaMes').addEventListener('input',()=>this.recalcularTudo());
+    document.getElementById('pontoCardSaldo').classList.add('cinza');
+    this.atualizarInfoTopo('');
+  }
+};
+
+/* ========================= LISTA DE PACIENTES ========================= */
+const pacientesApp = {
+  STORAGE_KEY: 'pacientes_dados_v1',
+  capacidade: { 'UTI B':13,'UTI C':10,'UTI D':20,'UTI E':22,'UTI SUS':30 },
+
+  init(){
+    const saved = localStorage.getItem(this.STORAGE_KEY);
+    if(saved){
+      try{
+        const d = JSON.parse(saved);
+        if(d.texto) document.getElementById('pacientesTexto').value = d.texto;
+        if(d.resumoHTML) document.getElementById('pacientesResultado').innerHTML = d.resumoHTML;
+        if(d.tabelasHTML) document.getElementById('pacientesTabelasDiv').innerHTML = d.tabelasHTML;
+      }catch(e){}
+    }
+    document.getElementById('pacientesTexto').addEventListener('input', () => {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
+        texto: document.getElementById('pacientesTexto').value,
+        resumoHTML: document.getElementById('pacientesResultado').innerHTML,
+        tabelasHTML: document.getElementById('pacientesTabelasDiv').innerHTML
+      }));
+    });
+  },
+
+  atualizar(){
+    const linhas = document.getElementById('pacientesTexto').value.split('\n');
+    const utis = { 'UTI B':{},'UTI C':{},'UTI D':{},'UTI E':{},'UTI SUS':{} };
+    let atendimento='', paciente='';
+    for(let i=0;i<linhas.length;i++){
+      let linha=linhas[i].trim(); if(!linha) continue;
+      if(linha==='Atend.'){
+        for(let j=i+1;j<i+6;j++){ if(linhas[j]&&/^\d+$/.test(linhas[j].trim())){ atendimento=linhas[j].trim(); break; } }
+      }
+      const mp=linha.match(/^\d+\s*,\s*(.+)$/); if(mp) paciente=mp[1].trim();
+      if(linha.startsWith('UTI')){
+        let tipo='',leito='';
+        if(linha.startsWith('UTI SUS')){ tipo='UTI SUS'; const m=linha.match(/UTISUS(\d+)/); if(m) leito='SUS'+m[1].padStart(2,'0'); }
+        else if(linha.startsWith('UTI B')){ tipo='UTI B'; const m=linha.match(/UTI-B(\d+)/); if(m) leito='B'+m[1]; }
+        else if(linha.startsWith('UTI C')){ tipo='UTI C'; const m=linha.match(/UTI-C(\d+)/); if(m) leito='C'+m[1].padStart(2,'0'); }
+        else if(linha.startsWith('UTI D')){ tipo='UTI D'; const m=linha.match(/UTI-D(\d+)/); if(m) leito='D'+m[1].padStart(2,'0'); }
+        else if(linha.startsWith('UTI E')){ tipo='UTI E'; const m=linha.match(/UTI-E(\d+)/); if(m) leito='E'+m[1]; }
+        if(tipo&&leito){ utis[tipo][leito]={paciente:paciente||'Leito Vago',atendimento:atendimento||'-'}; paciente=''; atendimento=''; }
+      }
+    }
+    const resumoHTML = this.buildResumo(utis);
+    const tabelasHTML = this.buildTabelas(utis);
+    document.getElementById('pacientesResultado').innerHTML = resumoHTML;
+    document.getElementById('pacientesTabelasDiv').innerHTML = tabelasHTML;
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
+      texto: document.getElementById('pacientesTexto').value,
+      resumoHTML, tabelasHTML
+    }));
+  },
+
+  buildResumo(utis){
+    const b=Object.keys(utis['UTI B']).length, c=Object.keys(utis['UTI C']).length;
+    const d=Object.keys(utis['UTI D']).length, e=Object.keys(utis['UTI E']).length;
+    const s=Object.keys(utis['UTI SUS']).length;
+    return `<b>Resumo</b><br><br>
+      UTI B: ${b}/${this.capacidade['UTI B']}<br>
+      UTI C: ${c}/${this.capacidade['UTI C']}<br>
+      UTI D: ${d}/${this.capacidade['UTI D']}<br>
+      UTI E: ${e}/${this.capacidade['UTI E']}<br>
+      UTI SUS: ${s}/${this.capacidade['UTI SUS']}<br><br>
+      <b>Total: ${b+c+d+e+s}</b>`;
+  },
+
+  buildTabelas(utis){
+    let html='';
+    for(let tipo in utis){
+      const leitos=this.gerarLeitos(tipo);
+      html+=`<div class="bloco-uti"><h3>${tipo}</h3><table><tr><th>Leito</th><th>Paciente</th><th>Atendimento</th></tr>`;
+      leitos.forEach(l=>{
+        const dado=utis[tipo][l];
+        html+=dado
+          ?`<tr class="ocupado"><td>${l}</td><td>${dado.paciente}</td><td>${dado.atendimento}</td></tr>`
+          :`<tr class="vago"><td>${l}</td><td>Leito Vago</td><td>-</td></tr>`;
+      });
+      html+=`</table></div>`;
+    }
+    return html;
+  },
+
+  gerarLeitos(tipo){
+    const cap=this.capacidade[tipo]; let lista=[];
+    if(tipo==='UTI B'){ for(let i=201;i<=213;i++) lista.push('B'+i); }
+    else if(tipo==='UTI C'){ for(let i=1;i<=cap;i++) lista.push('C'+String(i).padStart(2,'0')); }
+    else if(tipo==='UTI D'){ for(let i=1;i<=cap;i++) lista.push('D'+String(i).padStart(2,'00')); }
+    else if(tipo==='UTI E'){ for(let i=101;i<=122;i++) lista.push('E'+i); }
+    else if(tipo==='UTI SUS'){ for(let i=1;i<=cap;i++) lista.push('SUS'+String(i).padStart(2,'0')); }
+    return lista;
+  }
+};
+
+materialApp.init();
+devolucaoApp.init();
+pontoApp.init();
+pacientesApp.init();
+</script>
+</body>
+</html>
