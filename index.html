@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Área Administrativa VIP UTI</title>
-<link rel="icon" href="favicon_hospital.ico" type="image/x-icon">
 <style>
 *{box-sizing:border-box;}
 html,body{height:100%;}
@@ -202,7 +201,9 @@ body{
 /* =========================
    LISTA DE PACIENTES
    ========================= */
-#page-pacientes{ font-family:Arial, sans-serif; background:#f2f2f2; padding:20px; display:flex; flex-direction:column; }
+/* CORRIGIDO: display:flex separado para .active evitar sobrescrever display:none do .page */
+#page-pacientes{ font-family:Arial, sans-serif; background:#f2f2f2; padding:20px; }
+#page-pacientes.active{ display:flex; flex-direction:column; }
 #page-pacientes .pac-topo{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
 #page-pacientes textarea{
   width:100%;
@@ -346,7 +347,7 @@ body{
                 <option value="">Selecione</option>
                 <option value="Emanuel Elias">Emanuel Elias</option>
                 <option value="Rose Costa">Rose Costa</option>
-                <option value="Tatiane Lopes">Tathiane Lopes</option>
+                <option value="Tatiane Lopes">Tatiane Lopes</option>
                 <option value="Wanderson Ulhoa">Wanderson Ulhoa</option>
               </select>
             </div>
@@ -571,11 +572,20 @@ const devolucaoApp = {
     if(!txt){ alert('cole os dados'); return; }
     const linhas = txt.split('\n').map(l => this.normalizar(l)).filter(l => l);
     let solicitacao='', paciente='', leito='';
+
+    // Captura paciente (linha "NÚMERO Nome") cujo próximo elemento é número puro (solicitação)
     for(let i=0;i<linhas.length;i++){
       const m = linhas[i].match(/^(\d+)\s+(.+)/);
       if(m && /^\d+$/.test(linhas[i+1]||'')){ paciente=m[2]; solicitacao=linhas[i+1]; break; }
     }
-    for(const l of linhas){ if(/^UTI\s+SUS/i.test(l)){ leito=l; break; } }
+
+    // Captura leito da linha imediatamente após "Página: 1" (funciona para todas as UTIs)
+    for(let i=0;i<linhas.length;i++){
+      if(/^p[aá]gina:\s*1$/i.test(linhas[i])){
+        if(linhas[i+1]) { leito = linhas[i+1]; break; }
+      }
+    }
+
     if(!solicitacao||!paciente||!leito){ alert('erro ao capturar'); return; }
     this.lista.push({ dataDevolucao:this.formatarDataHoje(), solicitacao, paciente, leito, funcionario:this.getFuncionarioSelecionado() });
     this.ordenarLista(); this.render(); this.salvarNoNavegador();
