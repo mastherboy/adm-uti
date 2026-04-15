@@ -116,7 +116,7 @@ body{
 #page-devolucao .col-data{ width:115px; text-align:center; }
 #page-devolucao .col-solic{ width:100px; text-align:center; }
 #page-devolucao .col-paciente{ width:320px; text-align:left; }
-#page-devolucao .col-leito{ width:100px; text-align:center;  }
+#page-devolucao .col-leito{ width:100px; text-align:center; }
 #page-devolucao .col-func{ width:170px; text-align:center; }
 #page-devolucao .col-farm{ width:250px; text-align:center; }
 #page-devolucao .col-acoes{ width:80px; text-align:center; }
@@ -127,6 +127,74 @@ body{
 #page-devolucao .input-esquerda{ text-align:left; }
 #page-devolucao .assinatura{ background:#fff; }
 #page-devolucao .btn-remover-linha{ padding:5px 9px; border:none; border-radius:5px; background:#777; color:#fff; cursor:pointer; font-size:12px; }
+
+/* =========================
+   POPUP ALERTA DUPLICADO
+   ========================= */
+#popup-duplicado{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  background:rgba(0,0,0,0.55);
+  align-items:center;
+  justify-content:center;
+}
+#popup-duplicado.visivel{
+  display:flex;
+}
+#popup-duplicado .popup-box{
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.32);
+  padding:36px 40px 28px 40px;
+  max-width:380px;
+  width:90%;
+  text-align:center;
+  animation:popupEntrar 0.18s ease;
+}
+@keyframes popupEntrar{
+  from{transform:scale(0.85);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+#popup-duplicado .popup-icone{
+  font-size:52px;
+  line-height:1;
+  margin-bottom:14px;
+}
+#popup-duplicado .popup-titulo{
+  font-size:20px;
+  font-weight:bold;
+  color:#c53030;
+  margin-bottom:8px;
+}
+#popup-duplicado .popup-msg{
+  font-size:15px;
+  color:#444;
+  margin-bottom:24px;
+  line-height:1.5;
+}
+#popup-duplicado .popup-solic{
+  font-size:22px;
+  font-weight:bold;
+  color:#2b6cb0;
+  margin-bottom:18px;
+  letter-spacing:1px;
+}
+#popup-duplicado .popup-btn{
+  padding:10px 32px;
+  border:none;
+  border-radius:8px;
+  background:#c53030;
+  color:#fff;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:background 0.15s;
+}
+#popup-duplicado .popup-btn:hover{
+  background:#9b2c2c;
+}
 
 /* =========================
    MATERIAL
@@ -201,7 +269,6 @@ body{
 /* =========================
    LISTA DE PACIENTES
    ========================= */
-/* CORRIGIDO: display:flex separado para .active evitar sobrescrever display:none do .page */
 #page-pacientes{ font-family:Arial, sans-serif; background:#f2f2f2; padding:20px; }
 #page-pacientes.active{ display:flex; flex-direction:column; }
 #page-pacientes .pac-topo{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
@@ -347,7 +414,7 @@ body{
                 <option value="">Selecione</option>
                 <option value="Emanuel Elias">Emanuel Elias</option>
                 <option value="Rose Costa">Rose Costa</option>
-                <option value="Tatiane Lopes">Tathiana Lopes</option>
+                <option value="Tatiane Lopes">Tatiane Lopes</option>
                 <option value="Wanderson Ulhoa">Wanderson Ulhoa</option>
               </select>
             </div>
@@ -443,6 +510,17 @@ body{
     <div id="pacientesTabelasDiv"></div>
   </section>
 
+</div>
+
+<!-- POPUP SOLICITAÇÃO DUPLICADA -->
+<div id="popup-duplicado" role="dialog" aria-modal="true" aria-labelledby="popup-titulo-txt">
+  <div class="popup-box">
+    <div class="popup-icone">⚠️</div>
+    <div class="popup-titulo" id="popup-titulo-txt">Solicitação já protocolada</div>
+    <div class="popup-msg">O código de solicitação abaixo já foi registrado na lista:</div>
+    <div class="popup-solic" id="popup-solic-cod"></div>
+    <button class="popup-btn" onclick="devolucaoApp.fecharPopupDuplicado()">OK, entendi</button>
+  </div>
 </div>
 
 <nav class="bottom-tabs" aria-label="Abas inferiores">
@@ -573,13 +651,11 @@ const devolucaoApp = {
     const linhas = txt.split('\n').map(l => this.normalizar(l)).filter(l => l);
     let solicitacao='', paciente='', leito='';
 
-    // Captura paciente (linha "NÚMERO Nome") cujo próximo elemento é número puro (solicitação)
     for(let i=0;i<linhas.length;i++){
       const m = linhas[i].match(/^(\d+)\s+(.+)/);
       if(m && /^\d+$/.test(linhas[i+1]||'')){ paciente=m[2]; solicitacao=linhas[i+1]; break; }
     }
 
-    // Captura leito da linha imediatamente após "Página: 1" (funciona para todas as UTIs)
     for(let i=0;i<linhas.length;i++){
       if(/^p[aá]gina:\s*1$/i.test(linhas[i])){
         if(linhas[i+1]) { leito = linhas[i+1]; break; }
@@ -587,6 +663,10 @@ const devolucaoApp = {
     }
 
     if(!solicitacao||!paciente||!leito){ alert('erro ao capturar'); return; }
+
+    const jaCadastrada = this.lista.some(item => item.solicitacao === solicitacao);
+    if(jaCadastrada){ this.abrirPopupDuplicado(solicitacao); return; }
+
     this.lista.push({ dataDevolucao:this.formatarDataHoje(), solicitacao, paciente, leito, funcionario:this.getFuncionarioSelecionado() });
     this.ordenarLista(); this.render(); this.salvarNoNavegador();
     document.getElementById('entrada').value = '';
@@ -612,6 +692,15 @@ const devolucaoApp = {
       `;
       tbody.appendChild(tr);
     });
+  },
+
+  abrirPopupDuplicado(cod){
+    document.getElementById('popup-solic-cod').textContent = cod;
+    document.getElementById('popup-duplicado').classList.add('visivel');
+  },
+
+  fecharPopupDuplicado(){
+    document.getElementById('popup-duplicado').classList.remove('visivel');
   },
 
   remover(i){ this.lista.splice(i,1); this.render(); this.salvarNoNavegador(); },
