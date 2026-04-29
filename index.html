@@ -311,6 +311,21 @@ body{
 #page-pacientes .ocupado{ background:#d4edda; }
 #page-pacientes .vago{ background:#ffe5b4; color:#555; font-style:italic; }
 
+#page-pacientes .celula-copiar{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+#page-pacientes .btn-copiar{ border:none; background:transparent; cursor:pointer; font-size:16px; line-height:1; padding:2px 5px; border-radius:4px; color:#333; }
+#page-pacientes .btn-copiar:hover{ background:rgba(0,0,0,0.08); transform:scale(1.08); }
+#page-pacientes .btn-copiar-completo{ border:none; background:#2d6cdf; color:#fff; cursor:pointer; font-size:12px; font-weight:700; padding:5px 9px; border-radius:6px; white-space:nowrap; }
+#page-pacientes .btn-copiar-completo:hover{ background:#1d5abf; }
+
+#page-pacientes .banco-pacientes{ background:#fff; border-radius:10px; padding:15px; margin-top:16px; border:1px solid #ddd; }
+#page-pacientes .banco-topo{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+#page-pacientes .banco-topo h3{ margin:0; }
+#page-pacientes .banco-contador{ font-size:13px; color:#555; font-weight:bold; }
+#page-pacientes .banco-lista{ display:flex; flex-direction:column; gap:6px; max-height:420px; overflow:auto; padding-right:4px; }
+#page-pacientes .banco-item{ display:flex; justify-content:space-between; align-items:center; gap:10px; border:1px solid #e0e0e0; border-radius:8px; padding:8px 10px; background:#f9f9f9; font-size:14px; }
+#page-pacientes .banco-texto{ word-break:break-word; }
+#page-pacientes .banco-vazio{ color:#777; font-style:italic; padding:10px; }
+
 /* =========================
    PRINT
    ========================= */
@@ -540,6 +555,31 @@ body{
 </nav>
 
 <script>
+
+function copiarTexto(texto){
+  texto = String(texto||'').trim();
+  if(!texto) return;
+
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(texto).catch(() => copiarTextoFallback(texto));
+  }else{
+    copiarTextoFallback(texto);
+  }
+}
+
+function copiarTextoFallback(texto){
+  const temp = document.createElement('textarea');
+  temp.value = texto;
+  temp.setAttribute('readonly','');
+  temp.style.position = 'fixed';
+  temp.style.left = '-9999px';
+  document.body.appendChild(temp);
+  temp.select();
+  try{ document.execCommand('copy'); }
+  catch(e){ alert('Não foi possível copiar.'); }
+  document.body.removeChild(temp);
+}
+
 function switchTab(tab){
   ['material','devolucao','ponto','pacientes'].forEach(t => {
     document.getElementById('page-'+t).classList.toggle('active', t===tab);
@@ -927,26 +967,33 @@ const pontoApp = {
 
 /* ========================= LISTA DE PACIENTES ========================= */
 const pacientesApp = {
-  STORAGE_KEY: 'pacientes_dados_v1',
+  STORAGE_KEY: 'pacientes_dados_v2',
+  MAX_BANCO: 500,
   capacidade: { 'UTI B':13,'UTI C':10,'UTI D':20,'UTI E':22,'UTI SUS':30 },
+  banco: [],
 
   init(){
-    const saved = localStorage.getItem(this.STORAGE_KEY);
+    const saved = localStorage.getItem(this.STORAGE_KEY) || localStorage.getItem('pacientes_dados_v1');
     if(saved){
       try{
         const d = JSON.parse(saved);
         if(d.texto) document.getElementById('pacientesTexto').value = d.texto;
+        if(Array.isArray(d.banco)) this.banco = d.banco.slice(-this.MAX_BANCO);
         if(d.resumoHTML) document.getElementById('pacientesResultado').innerHTML = d.resumoHTML;
         if(d.tabelasHTML) document.getElementById('pacientesTabelasDiv').innerHTML = d.tabelasHTML;
+        if(!d.tabelasHTML && this.banco.length) document.getElementById('pacientesTabelasDiv').innerHTML = this.buildBanco();
       }catch(e){}
     }
-    document.getElementById('pacientesTexto').addEventListener('input', () => {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
-        texto: document.getElementById('pacientesTexto').value,
-        resumoHTML: document.getElementById('pacientesResultado').innerHTML,
-        tabelasHTML: document.getElementById('pacientesTabelasDiv').innerHTML
-      }));
-    });
+    document.getElementById('pacientesTexto').addEventListener('input', () => this.salvarEstado());
+  },
+
+  salvarEstado(resumoHTML, tabelasHTML){
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
+      texto: document.getElementById('pacientesTexto').value,
+      resumoHTML: resumoHTML !== undefined ? resumoHTML : document.getElementById('pacientesResultado').innerHTML,
+      tabelasHTML: tabelasHTML !== undefined ? tabelasHTML : document.getElementById('pacientesTabelasDiv').innerHTML,
+      banco: this.banco
+    }));
   },
 
   atualizar(){
@@ -969,14 +1016,46 @@ const pacientesApp = {
         if(tipo&&leito){ utis[tipo][leito]={paciente:paciente||'Leito Vago',atendimento:atendimento||'-'}; paciente=''; atendimento=''; }
       }
     }
+
+    this.adicionarNoBanco(this.extrairPacientesAtuais(utis));
+
     const resumoHTML = this.buildResumo(utis);
-    const tabelasHTML = this.buildTabelas(utis);
+    const tabelasHTML = this.buildTabelas(utis) + this.buildBanco();
     document.getElementById('pacientesResultado').innerHTML = resumoHTML;
     document.getElementById('pacientesTabelasDiv').innerHTML = tabelasHTML;
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
-      texto: document.getElementById('pacientesTexto').value,
-      resumoHTML, tabelasHTML
-    }));
+    this.salvarEstado(resumoHTML, tabelasHTML);
+  },
+
+  extrairPacientesAtuais(utis){
+    const lista = [];
+    for(const tipo in utis){
+      const leitos = this.gerarLeitos(tipo);
+      leitos.forEach(leito => {
+        const dado = utis[tipo][leito];
+        if(dado && dado.paciente && dado.paciente !== 'Leito Vago'){
+          lista.push({ paciente:dado.paciente, leito, atendimento:dado.atendimento || '-' });
+        }
+      });
+    }
+    return lista;
+  },
+
+  chaveBanco(item){
+    return `${String(item.paciente||'').trim().toUpperCase()}|${String(item.leito||'').trim().toUpperCase()}|${String(item.atendimento||'').trim().toUpperCase()}`;
+  },
+
+  adicionarNoBanco(novos){
+    const existentes = new Set(this.banco.map(item => this.chaveBanco(item)));
+    novos.forEach(item => {
+      const chave = this.chaveBanco(item);
+      if(!existentes.has(chave)){
+        this.banco.push({ paciente:item.paciente, leito:item.leito, atendimento:item.atendimento });
+        existentes.add(chave);
+      }
+    });
+    if(this.banco.length > this.MAX_BANCO){
+      this.banco = this.banco.slice(this.banco.length - this.MAX_BANCO);
+    }
   },
 
   buildResumo(utis){
@@ -989,22 +1068,73 @@ const pacientesApp = {
       UTI D: ${d}/${this.capacidade['UTI D']}<br>
       UTI E: ${e}/${this.capacidade['UTI E']}<br>
       UTI SUS: ${s}/${this.capacidade['UTI SUS']}<br><br>
-      <b>Total: ${b+c+d+e+s}</b>`;
+      <b>Total: ${b+c+d+e+s}</b><br>
+      <b>Banco salvo: ${this.banco.length}/${this.MAX_BANCO}</b>`;
   },
+
+  escHtml(t){
+    return String(t||'')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
+  },
+
+  enc(t){ return encodeURIComponent(String(t||'')); },
 
   buildTabelas(utis){
     let html='';
     for(let tipo in utis){
       const leitos=this.gerarLeitos(tipo);
-      html+=`<div class="bloco-uti"><h3>${tipo}</h3><table><tr><th>Leito</th><th>Paciente</th><th>Atendimento</th></tr>`;
+      html+=`<div class="bloco-uti"><h3>${tipo}</h3><table><tr><th>Leito</th><th>Paciente</th><th>Atendimento</th><th>Copiar junto</th></tr>`;
       leitos.forEach(l=>{
         const dado=utis[tipo][l];
-        html+=dado
-          ?`<tr class="ocupado"><td>${l}</td><td>${dado.paciente}</td><td>${dado.atendimento}</td></tr>`
-          :`<tr class="vago"><td>${l}</td><td>Leito Vago</td><td>-</td></tr>`;
+        if(dado){
+          const pacienteSeguro = this.escHtml(dado.paciente);
+          const atendimentoSeguro = this.escHtml(dado.atendimento);
+          const leitoSeguro = this.escHtml(l);
+          const pacienteCopiar = this.enc(dado.paciente);
+          const atendimentoCopiar = this.enc(dado.atendimento);
+          const completoCopiar = this.enc(`${dado.paciente} - ${l} - ${dado.atendimento}`);
+          html+=`<tr class="ocupado">
+            <td>${leitoSeguro}</td>
+            <td><div class="celula-copiar"><span>${pacienteSeguro}</span><button class="btn-copiar" title="Copiar paciente" onclick="copiarTexto(decodeURIComponent('${pacienteCopiar}'))">📋</button></div></td>
+            <td><div class="celula-copiar"><span>${atendimentoSeguro}</span><button class="btn-copiar" title="Copiar atendimento" onclick="copiarTexto(decodeURIComponent('${atendimentoCopiar}'))">📋</button></div></td>
+            <td><button class="btn-copiar-completo" title="Copiar paciente, leito e atendimento" onclick="copiarTexto(decodeURIComponent('${completoCopiar}'))">Copiar</button></td>
+          </tr>`;
+        }else{
+          html+=`<tr class="vago"><td>${this.escHtml(l)}</td><td>Leito Vago</td><td>-</td><td>-</td></tr>`;
+        }
       });
       html+=`</table></div>`;
     }
+    return html;
+  },
+
+  buildBanco(){
+    let html = `<div class="banco-pacientes">
+      <div class="banco-topo">
+        <h3>Banco de pacientes</h3>
+        <div class="banco-contador">${this.banco.length}/${this.MAX_BANCO} pacientes salvos</div>
+      </div>`;
+
+    if(!this.banco.length){
+      html += `<div class="banco-vazio">Nenhum paciente salvo ainda.</div></div>`;
+      return html;
+    }
+
+    html += `<div class="banco-lista">`;
+    this.banco.forEach(item => {
+      const texto = `${item.paciente} - ${item.leito} - ${item.atendimento}`;
+      const textoSeguro = this.escHtml(texto);
+      const textoCopiar = this.enc(texto);
+      html += `<div class="banco-item">
+        <span class="banco-texto">${textoSeguro}</span>
+        <button class="btn-copiar-completo" title="Copiar" onclick="copiarTexto(decodeURIComponent('${textoCopiar}'))">Copiar</button>
+      </div>`;
+    });
+    html += `</div></div>`;
     return html;
   },
 
