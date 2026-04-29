@@ -404,7 +404,8 @@ body{
         <div class="acoes">
           <div class="acoes-esquerda">
             <button class="action-btn btn-enviar" onclick="devolucaoApp.processar()">Enviar</button>
-            <button class="action-btn btn-limpar" onclick="devolucaoApp.limpar()">Limpar</button>
+            <button class="action-btn btn-limpar" onclick="devolucaoApp.limparCampoEntrada()">Limpar campo</button>
+            <button class="action-btn btn-limpar" onclick="devolucaoApp.limpar()">Limpar tudo</button>
             <button class="action-btn btn-imprimir" onclick="window.print()">Imprimir</button>
           </div>
           <div class="acoes-direita">
@@ -628,6 +629,24 @@ const devolucaoApp = {
 
   getFuncionarioSelecionado(){ return document.getElementById('selectFuncionario').value||''; },
 
+  limparCampoEntrada(){
+    document.getElementById('entrada').value = '';
+  },
+
+  extrairLeito(linhas){
+    for(const linha of linhas){
+      const sus = linha.match(/^UTI\s*SUS\s*(\d+)\b/i);
+      if(sus) return `UTI SUS ${sus[1]}`;
+
+      const uti = linha.match(/^UTI\s*-?\s*([BCDE])\s*(\d+)\b/i);
+      if(uti) return `UTI - ${uti[1].toUpperCase()} ${uti[2]}`;
+
+      const apt = linha.match(/^APT\s*-?\s*(\d+)\b/i);
+      if(apt) return `APT ${apt[1]}`;
+    }
+    return '';
+  },
+
   aoMudarFuncionario(){ this.aplicarFuncionarioEmTudo(); this.salvarNoNavegador(); },
 
   aplicarFuncionarioEmTudo(){
@@ -656,11 +675,7 @@ const devolucaoApp = {
       if(m && /^\d+$/.test(linhas[i+1]||'')){ paciente=m[2]; solicitacao=linhas[i+1]; break; }
     }
 
-    for(let i=0;i<linhas.length;i++){
-      if(/^p[aá]gina:\s*1$/i.test(linhas[i])){
-        if(linhas[i+1]) { leito = linhas[i+1]; break; }
-      }
-    }
+    leito = this.extrairLeito(linhas);
 
     if(!solicitacao||!paciente||!leito){ alert('erro ao capturar'); return; }
 
