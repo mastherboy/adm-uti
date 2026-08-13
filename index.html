@@ -320,7 +320,9 @@ body{
 #page-pacientes .banco-pacientes{ background:#fff; border-radius:10px; padding:15px; margin-top:16px; border:1px solid #ddd; }
 #page-pacientes .banco-topo{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
 #page-pacientes .banco-topo h3{ margin:0; }
-#page-pacientes .banco-contador{ font-size:13px; color:#555; font-weight:bold; }
+#page-pacientes .banco-contador{ font-size:13px; color:#555; font-weight:bold; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+#page-pacientes .btn-zerar-banco{ border:none; background:#c53030; color:#fff; cursor:pointer; font-size:12px; font-weight:700; padding:5px 9px; border-radius:6px; white-space:nowrap; }
+#page-pacientes .btn-zerar-banco:hover{ background:#9b2c2c; }
 #page-pacientes .banco-lista{ display:flex; flex-direction:column; gap:6px; max-height:420px; overflow:auto; padding-right:4px; }
 #page-pacientes .banco-item{ display:flex; justify-content:space-between; align-items:center; gap:10px; border:1px solid #e0e0e0; border-radius:8px; padding:8px 10px; background:#f9f9f9; font-size:14px; }
 #page-pacientes .banco-texto{ word-break:break-word; }
@@ -1023,6 +1025,7 @@ const pacientesApp = {
     const tabelasHTML = this.buildTabelas(utis) + this.buildBanco();
     document.getElementById('pacientesResultado').innerHTML = resumoHTML;
     document.getElementById('pacientesTabelasDiv').innerHTML = tabelasHTML;
+    document.getElementById('pacientesTexto').value = '';
     this.salvarEstado(resumoHTML, tabelasHTML);
   },
 
@@ -1069,7 +1072,7 @@ const pacientesApp = {
       UTI E: ${e}/${this.capacidade['UTI E']}<br>
       UTI SUS: ${s}/${this.capacidade['UTI SUS']}<br><br>
       <b>Total: ${b+c+d+e+s}</b><br>
-      <b>Banco salvo: ${this.banco.length}/${this.MAX_BANCO}</b>`;
+      <b>Banco salvo: ${this.banco.length}/${this.MAX_BANCO}</b> <button class="btn-zerar-banco" onclick="pacientesApp.zerarBanco()">Zerar banco</button>`;
   },
 
   escHtml(t){
@@ -1116,7 +1119,7 @@ const pacientesApp = {
     let html = `<div class="banco-pacientes">
       <div class="banco-topo">
         <h3>Banco de pacientes</h3>
-        <div class="banco-contador">${this.banco.length}/${this.MAX_BANCO} pacientes salvos</div>
+        <div class="banco-contador"><span>${this.banco.length}/${this.MAX_BANCO} pacientes salvos</span><button class="btn-zerar-banco" onclick="pacientesApp.zerarBanco()">Zerar banco</button></div>
       </div>`;
 
     if(!this.banco.length){
@@ -1136,6 +1139,26 @@ const pacientesApp = {
     });
     html += `</div></div>`;
     return html;
+  },
+
+  zerarBanco(){
+    if(!confirm('Zerar todo o banco de pacientes? Esta ação não pode ser desfeita.')) return;
+    this.banco = [];
+
+    const bancoEl = document.querySelector('#pacientesTabelasDiv .banco-pacientes');
+    if(bancoEl){
+      bancoEl.outerHTML = this.buildBanco();
+    }
+
+    const resumo = document.getElementById('pacientesResultado');
+    if(resumo){
+      resumo.innerHTML = resumo.innerHTML.replace(
+        /<b>Banco salvo:\s*\d+\/\d+<\/b>\s*(?:<button[^>]*>Zerar banco<\/button>)?/i,
+        `<b>Banco salvo: 0/${this.MAX_BANCO}</b> <button class="btn-zerar-banco" onclick="pacientesApp.zerarBanco()">Zerar banco</button>`
+      );
+    }
+
+    this.salvarEstado();
   },
 
   gerarLeitos(tipo){
