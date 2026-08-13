@@ -367,6 +367,57 @@ body{
   #page-ponto .small{ font-size:10px; }
   #page-ponto .status-ok, #page-ponto .status-incompleto, #page-ponto .status-sem{ font-size:10px; line-height:1.2; }
 }
+
+
+/* =========================
+   PENDÊNCIAS
+   ========================= */
+#page-pendencias{ background:#eef2f7; padding:25px; font-family:Segoe UI,Arial,sans-serif; }
+#page-pendencias .pend-container{ max-width:1300px; margin:auto; }
+#page-pendencias .pend-card{ background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.15); }
+#page-pendencias h1{ text-align:center; color:#0d47a1; margin:0 0 20px; }
+#page-pendencias textarea{ width:100%; resize:none; height:72px; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px; }
+#page-pendencias .pend-botoes{ margin-top:12px; display:flex; flex-wrap:wrap; gap:10px; }
+#page-pendencias .pend-btn{ border:none; border-radius:6px; padding:10px 18px; cursor:pointer; color:#000; transition:.2s; }
+#page-pendencias .pend-btn:hover{ transform:scale(1.04); }
+#page-pendencias .pend-extrair{ background:#1565c0; color:#fff; }
+#page-pendencias .pend-imprimir{ background:#00897b; color:#fff; }
+#page-pendencias .pend-salvar{ background:#2e7d32; color:#fff; }
+#page-pendencias .pend-limpartexto{ background:#ef6c00; color:#fff; }
+#page-pendencias .pend-limpartudo{ background:#c62828; color:#fff; }
+#pend-pesquisa{ margin-top:20px; width:300px; max-width:100%; padding:8px; border-radius:6px; border:1px solid #bbb; }
+#page-pendencias .pend-contadores{ display:flex; gap:20px; margin:15px 0; font-weight:bold; flex-wrap:wrap; }
+#page-pendencias table{ width:100%; border-collapse:collapse; background:#fff; }
+#page-pendencias th{ background:#1565c0; color:#fff; padding:10px; }
+#page-pendencias td{ border:1px solid #ddd; padding:8px; }
+#page-pendencias tbody td, #page-pendencias tbody input[type="text"], #page-pendencias tbody select{ font-size:13px; }
+#page-pendencias .pend-tabela-scroll{ max-height:calc(100vh - 310px); min-height:180px; overflow:auto; border:1px solid #d7dee8; border-radius:7px; background:#fff; }
+#page-pendencias .pend-tabela-scroll thead th{ position:sticky; top:0; z-index:5; box-shadow:0 1px 0 #d7dee8; }
+#page-pendencias .pend-status-select{ width:105px; padding:5px 7px; border:1px solid #b8c2cf; border-radius:5px; background:#fff; cursor:pointer; color:#222; }
+#page-pendencias .pend-status-pendente{ background:#FFE0B2 !important; }
+#page-pendencias .pend-status-confirmado{ background:#C8E6C9 !important; }
+#page-pendencias input[type=checkbox]{ width:20px; height:20px; }
+#page-pendencias tbody tr:nth-child(even){ background:#f9f9f9; }
+#page-pendencias tbody tr:hover{ background:#e3f2fd; }
+#page-pendencias .pend-btn-copiar{ display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; padding:0; margin:0 6px 0 0; border:none; border-radius:6px; background:#e8f0fe; color:#1565c0; cursor:pointer; vertical-align:middle; }
+#page-pendencias .pend-btn-copiar:hover{ background:#d2e3fc; transform:scale(1.06); }
+#page-pendencias .pend-btn-copiar svg{ width:16px; height:16px; pointer-events:none; }
+#page-pendencias .pend-btn-excluir{ display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; padding:0; border:none; border-radius:50%; background:#ffebee; color:#c62828; font-size:20px; font-weight:700; line-height:1; cursor:pointer; }
+#page-pendencias .pend-btn-excluir:hover{ background:#ffcdd2; transform:scale(1.06); }
+#page-pendencias .pend-celula-com-copia{ white-space:nowrap; }
+#pend-modal{ position:fixed; inset:0; display:none; justify-content:center; align-items:center; background:rgba(0,0,0,.45); backdrop-filter:blur(2px); z-index:100000; }
+#pend-modal .pend-modal-conteudo{ background:#fff; width:380px; max-width:90%; padding:30px; border-radius:12px; box-shadow:0 10px 35px rgba(0,0,0,.35); text-align:center; }
+@media print{
+  #page-pendencias.active{ display:block !important; background:#fff !important; padding:0 !important; }
+  #page-pendencias .pend-tabela-scroll{ max-height:none !important; min-height:0 !important; overflow:visible !important; border:none !important; }
+  #page-pendencias .pend-tabela-scroll thead th{ position:static !important; }
+  #page-pendencias textarea, #page-pendencias .pend-botoes, #page-pendencias .pend-btn-copiar, #page-pendencias .pend-btn-excluir, #pend-pesquisa, #page-pendencias .pend-contadores, #pend-modal, #page-pendencias h1{ display:none !important; }
+  #page-pendencias .pend-card{ box-shadow:none; padding:0; border:none; }
+  #page-pendencias table{ margin:0; width:100%; }
+  #page-pendencias th{ background:#ddd !important; color:#000 !important; }
+  #page-pendencias tr{ page-break-inside:avoid; }
+}
+
 </style>
 </head>
 <body>
@@ -528,6 +579,37 @@ body{
     <div id="pacientesTabelasDiv"></div>
   </section>
 
+  <!-- PENDÊNCIAS -->
+  <section id="page-pendencias" class="page">
+    <div class="pend-container">
+      <div class="pend-card">
+        <h1>Controle de Pendências</h1>
+        <textarea id="pend-texto" rows="3" placeholder="Cole aqui o relatório do SoulMV"></textarea>
+        <div class="pend-botoes">
+          <button class="pend-btn pend-extrair" onclick="pendenciasApp.extrair()">📋 Extrair</button>
+          <button class="pend-btn pend-imprimir" onclick="window.print()">🖨 Imprimir</button>
+          <button class="pend-btn pend-salvar" onclick="pendenciasApp.salvarRelatorio()">💾 Salvar</button>
+          <button class="pend-btn pend-limpartexto" onclick="document.getElementById('pend-texto').value=''">🧹 Limpar Texto</button>
+          <button class="pend-btn pend-limpartudo" onclick="pendenciasApp.limparTudo()">🗑 Limpar Tudo</button>
+        </div>
+        <input id="pend-pesquisa" placeholder="Pesquisar...">
+        <div class="pend-contadores">
+          <div>Total: <span id="pend-total">0</span></div>
+          <div>Notificados: <span id="pend-notificados">0</span></div>
+          <div>Pendentes: <span id="pend-pendentes">0</span></div>
+        </div>
+        <div class="pend-tabela-scroll">
+          <table>
+            <thead><tr>
+              <th>Solicitação</th><th>Atendimento</th><th>Paciente</th><th>Data</th><th>Hora</th><th>Usuário</th><th>Leito</th><th>Check</th><th>Data Notificação</th><th>Status</th><th class="acao-coluna">Excluir</th>
+            </tr></thead>
+            <tbody id="pend-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <!-- POPUP SOLICITAÇÃO DUPLICADA -->
@@ -538,6 +620,19 @@ body{
     <div class="popup-msg">O código de solicitação abaixo já foi registrado na lista:</div>
     <div class="popup-solic" id="popup-solic-cod"></div>
     <button class="popup-btn" onclick="devolucaoApp.fecharPopupDuplicado()">OK, entendi</button>
+  </div>
+</div>
+
+
+
+<!-- POPUP PENDÊNCIAS -->
+<div class="modal" id="pend-modal">
+  <div class="pend-modal-conteudo">
+    <div style="font-size:55px;margin-bottom:10px;">⚠️</div>
+    <h2 style="color:#d32f2f;margin-bottom:15px;font-size:34px;">Solicitação já protocolada</h2>
+    <p style="color:#555;font-size:22px;line-height:35px;">O código de solicitação abaixo já foi registrado na lista:</p>
+    <div id="pend-codigoDuplicado" style="margin-top:25px;margin-bottom:30px;font-size:42px;color:#2c63b5;font-weight:bold;letter-spacing:2px;"></div>
+    <button onclick="pendenciasApp.fecharModal()" style="background:#c62828;color:white;border:none;border-radius:8px;padding:14px 35px;font-size:22px;cursor:pointer;">OK, entendi</button>
   </div>
 </div>
 
@@ -553,6 +648,9 @@ body{
   </button>
   <button id="tab-pacientes" class="tab-btn" onclick="switchTab('pacientes')">
     <span class="tab-icon">🏥</span>Lista de Pacientes
+  </button>
+  <button id="tab-pendencias" class="tab-btn" onclick="switchTab('pendencias')">
+    <span class="tab-icon">⚠️</span>Pendências
   </button>
 </nav>
 
@@ -583,7 +681,7 @@ function copiarTextoFallback(texto){
 }
 
 function switchTab(tab){
-  ['material','devolucao','ponto','pacientes'].forEach(t => {
+  ['material','devolucao','ponto','pacientes','pendencias'].forEach(t => {
     document.getElementById('page-'+t).classList.toggle('active', t===tab);
     document.getElementById('tab-'+t).classList.toggle('active', t===tab);
   });
@@ -592,7 +690,7 @@ function switchTab(tab){
 
 (function initTabs(){
   const salva = localStorage.getItem('aba_site_unificado');
-  if(['material','devolucao','ponto','pacientes'].includes(salva)) switchTab(salva);
+  if(['material','devolucao','ponto','pacientes','pendencias'].includes(salva)) switchTab(salva);
   else switchTab('material');
 })();
 
@@ -1172,10 +1270,107 @@ const pacientesApp = {
   }
 };
 
+
+
+/* ========================= PENDÊNCIAS ========================= */
+const pendenciasApp = {
+  STORAGE_KEY: 'pendencias',
+  registros: [],
+
+  init(){
+    try{ this.registros = JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || []; }catch(e){ this.registros=[]; }
+    this.registros = this.registros.map(r => ({...r, status:r.status || 'pendente'}));
+    this.ordenarRegistros();
+    this.salvarLocal();
+    this.desenharTabela();
+    const pesquisa=document.getElementById('pend-pesquisa');
+    pesquisa.addEventListener('keyup',()=>this.filtrar());
+    const modal=document.getElementById('pend-modal');
+    modal.addEventListener('click',e=>{ if(e.target===modal) this.fecharModal(); });
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape') this.fecharModal(); });
+  },
+
+  valorDataHora(registro){
+    const data=String(registro.data||'').trim(), hora=String(registro.hora||'00:00').trim();
+    const md=data.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if(!md) return Number.MAX_SAFE_INTEGER;
+    const mh=hora.match(/^(\d{2}):(\d{2})$/);
+    return new Date(Number(md[3]),Number(md[2])-1,Number(md[1]),mh?Number(mh[1]):0,mh?Number(mh[2]):0).getTime();
+  },
+  ordenarRegistros(){ this.registros.sort((a,b)=>this.valorDataHora(a)-this.valorDataHora(b)); },
+  salvarLocal(){ localStorage.setItem(this.STORAGE_KEY,JSON.stringify(this.registros)); },
+  abrirModal(codigo){ document.getElementById('pend-codigoDuplicado').textContent=codigo; document.getElementById('pend-modal').style.display='flex'; },
+  fecharModal(){ document.getElementById('pend-modal').style.display='none'; },
+  atualizarContadores(){
+    document.getElementById('pend-total').textContent=this.registros.length;
+    document.getElementById('pend-pendentes').textContent=this.registros.filter(r=>(r.status||'pendente')==='pendente').length;
+    document.getElementById('pend-notificados').textContent=this.registros.filter(r=>r.notificado).length;
+  },
+  esc(t){ return String(t??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); },
+  enc(t){ return encodeURIComponent(String(t??'')); },
+  iconeCopiar(){ return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>`; },
+  copiarDoBotao(botao){ copiarTexto(decodeURIComponent(botao.dataset.copy||'')); const old=botao.title; botao.title='Copiado!'; botao.style.background='#c8e6c9'; setTimeout(()=>{botao.title=old;botao.style.background='';},900); },
+
+  desenharTabela(lista=this.registros){
+    lista=[...lista].sort((a,b)=>this.valorDataHora(a)-this.valorDataHora(b));
+    const tbody=document.getElementById('pend-tbody'); tbody.innerHTML='';
+    lista.forEach(r=>{
+      const index=this.registros.findIndex(x=>x.solicitacao===r.solicitacao), st=r.status||'pendente';
+      const tr=document.createElement('tr'); tr.className=st==='confirmado'?'pend-status-confirmado':'pend-status-pendente';
+      tr.innerHTML=`
+        <td class="pend-celula-com-copia"><button class="pend-btn-copiar" data-copy="${this.enc(r.solicitacao)}" onclick="pendenciasApp.copiarDoBotao(this)" title="Copiar solicitação">${this.iconeCopiar()}</button>${this.esc(r.solicitacao)}</td>
+        <td>${this.esc(r.atendimento)}</td>
+        <td class="pend-celula-com-copia"><button class="pend-btn-copiar" data-copy="${this.enc(r.paciente)}" onclick="pendenciasApp.copiarDoBotao(this)" title="Copiar paciente">${this.iconeCopiar()}</button>${this.esc(r.paciente)}</td>
+        <td>${this.esc(r.data)}</td><td>${this.esc(r.hora)}</td>
+        <td class="pend-celula-com-copia"><button class="pend-btn-copiar" data-copy="${this.enc(r.usuario)}" onclick="pendenciasApp.copiarDoBotao(this)" title="Copiar usuário">${this.iconeCopiar()}</button>${this.esc(r.usuario)}</td>
+        <td>${this.esc(r.leito)}</td>
+        <td align="center"><input type="checkbox" ${r.notificado?'checked':''} onchange="pendenciasApp.alterarNotificado(${index},this.checked)"></td>
+        <td><input type="text" value="${this.esc(r.dataNotificacao||'')}" placeholder="dd/mm/aa" maxlength="8" style="width:85px;padding:4px;text-align:center" onchange="pendenciasApp.alterarData(${index},this.value)"></td>
+        <td align="center"><select class="pend-status-select" onchange="pendenciasApp.alterarStatus(${index},this.value)"><option value="pendente" ${st==='pendente'?'selected':''}>Pendente</option><option value="confirmado" ${st==='confirmado'?'selected':''}>Confirmado</option></select></td>
+        <td align="center"><button class="pend-btn-excluir" onclick="pendenciasApp.excluirLinha(${index})" title="Excluir linha">&times;</button></td>`;
+      tbody.appendChild(tr);
+    });
+    this.atualizarContadores();
+  },
+
+  excluirLinha(i){ if(i<0||i>=this.registros.length)return; const n=this.registros[i].solicitacao; if(confirm('Excluir a solicitação '+n+'?')){this.registros.splice(i,1);this.salvarLocal();document.getElementById('pend-pesquisa').value='';this.desenharTabela();} },
+  alterarNotificado(i,v){ this.registros[i].notificado=v; this.salvarLocal(); this.desenharTabela(); },
+  alterarData(i,v){ this.registros[i].dataNotificacao=v; this.salvarLocal(); },
+  alterarStatus(i,v){ if(i<0||i>=this.registros.length)return; this.registros[i].status=v; this.salvarLocal(); this.desenharTabela(); },
+
+  extrair(){
+    const campo=document.getElementById('pend-texto');
+    const linhas=campo.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    if(linhas.length<17){ this.abrirModal('Relatório incompleto.'); return; }
+    const leito=linhas[9], usuario=linhas[10];
+    let indice=-1;
+    for(let i=0;i<linhas.length;i++){ if(/^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}$/.test(linhas[i]) && i>10){ indice=i; break; } }
+    if(indice===-1||!linhas[indice+1]||!linhas[indice+2]){ this.abrirModal('Não foi possível localizar Atendimento, Paciente ou Solicitação.'); return; }
+    const partes=linhas[indice].split(/\s+/), data=partes[0]||'', hora=partes[1]||'';
+    const pm=linhas[indice+1].match(/^(\d+)\s+(.+)$/);
+    if(!pm){ this.abrirModal('Não foi possível identificar o Atendimento e o Paciente.'); return; }
+    const atendimento=pm[1], paciente=pm[2], solicitacao=linhas[indice+2].trim();
+    if(this.registros.some(x=>x.solicitacao==solicitacao)){ this.abrirModal(solicitacao); return; }
+    this.registros.push({solicitacao,atendimento,paciente,data,hora,usuario,leito,notificado:false,dataNotificacao:'',status:'pendente'});
+    this.ordenarRegistros(); this.salvarLocal(); this.desenharTabela(); campo.value='';
+  },
+
+  filtrar(){
+    const txt=document.getElementById('pend-pesquisa').value.toUpperCase();
+    this.desenharTabela(this.registros.filter(r=>[r.solicitacao,r.atendimento,r.paciente,r.usuario,r.leito,r.status||'pendente'].some(v=>String(v||'').toUpperCase().includes(txt))));
+  },
+  limparTudo(){ if(confirm('Deseja apagar TODOS os registros?')){ this.registros=[]; this.salvarLocal(); this.desenharTabela(); } },
+  salvarRelatorio(){
+    const html=document.documentElement.outerHTML, blob=new Blob([html],{type:'text/html'}), a=document.createElement('a'), hoje=new Date();
+    const nome='relatorio_pendencias_'+String(hoje.getDate()).padStart(2,'0')+'-'+String(hoje.getMonth()+1).padStart(2,'0')+'-'+hoje.getFullYear()+'.html';
+    const url=URL.createObjectURL(blob); a.href=url; a.download=nome; a.click(); setTimeout(()=>URL.revokeObjectURL(url),500);
+  }
+};
+
 materialApp.init();
 devolucaoApp.init();
 pontoApp.init();
 pacientesApp.init();
+pendenciasApp.init();
 </script>
 </body>
 </html>
