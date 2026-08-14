@@ -1324,7 +1324,7 @@ const pendenciasApp = {
         <td class="pend-celula-com-copia"><button class="pend-btn-copiar" data-copy="${this.enc(r.usuario)}" onclick="pendenciasApp.copiarDoBotao(this)" title="Copiar usuário">${this.iconeCopiar()}</button>${this.esc(r.usuario)}</td>
         <td>${this.esc(r.leito)}</td>
         <td align="center"><input type="checkbox" ${r.notificado?'checked':''} onchange="pendenciasApp.alterarNotificado(${index},this.checked)"></td>
-        <td><input type="text" value="${this.esc(r.dataNotificacao||'')}" placeholder="dd/mm/aa" maxlength="8" style="width:85px;padding:4px;text-align:center" onchange="pendenciasApp.alterarData(${index},this.value)"></td>
+        <td><input type="text" value="${this.esc(r.dataNotificacao||'')}" placeholder="dd/mm/aa" maxlength="15" style="width:85px;padding:4px;text-align:center" onchange="pendenciasApp.alterarData(${index},this.value)"></td>
         <td align="center"><select class="pend-status-select" onchange="pendenciasApp.alterarStatus(${index},this.value)"><option value="pendente" ${st==='pendente'?'selected':''}>Pendente</option><option value="confirmado" ${st==='confirmado'?'selected':''}>Confirmado</option></select></td>
         <td align="center"><button class="pend-btn-excluir" onclick="pendenciasApp.excluirLinha(${index})" title="Excluir linha">&times;</button></td>`;
       tbody.appendChild(tr);
